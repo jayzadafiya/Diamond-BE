@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 const userRouter = require("./src/routes/user.route");
+const diamondFilterRouter = require("./src/routes/diamond-filter.route");
 
 const app = express();
 dotenv.config();
@@ -22,6 +23,7 @@ app.get("/", async (req, res) => {
 });
 
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/diamond-filter", diamondFilterRouter);
 
 app.all("*", (req, res, next) => {
   const err = new Error(`Cant't find ${req.originalUrl} on this server!`);
