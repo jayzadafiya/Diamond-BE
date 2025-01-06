@@ -5,7 +5,6 @@ const crypto = require("crypto");
 const userSchema = mongoose.Schema({
   name: {
     type: String,
-    required: true,
     trim: true,
   },
   email: {
@@ -60,13 +59,13 @@ userSchema.methods.correctPassword = async function (
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-userSchema.methods.changedPasswordAfter = function (JWTTimesStemp) {
+userSchema.methods.changedPasswordAfter = function (JWTTimesStem) {
   if (this.passwordChangedAt) {
-    const changeedTimeStemp = parseInt(
+    const changedTimeStem = parseInt(
       this.passwordChangedAt.getTime() / 1000,
       10
     );
-    return JWTTimesStemp < changeedTimeStemp;
+    return JWTTimesStem < changedTimeStem;
   }
 
   //false means not change

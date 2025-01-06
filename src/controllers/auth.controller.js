@@ -11,15 +11,15 @@ const signToken = (id) => {
   });
 };
 
-const createSendToken = async (user, statusCode, res) => {
+const createSendToken = async (user, statusCode, res, message) => {
   const token = signToken(user._id);
 
   //remove password form output
   user.password = undefined;
 
   res.status(statusCode).json({
-    // message: 'User created  Succefully',
     status: "success",
+    message,
     token,
     data: {
       user,
@@ -43,7 +43,7 @@ exports.signup = async (req, res) => {
     // const url = `${req.protocol}://${req.get("host")}/me`;
     // await new Email(newUser, url).sendWelcome();
 
-    createSendToken(newUser, 201, res);
+    createSendToken(newUser, 201, res, "User created  Successfully");
   } catch (error) {
     console.log(error);
     res.status(400).json({
@@ -66,10 +66,10 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
 
     if (!user || !(await user.correctPassword(password, user.password))) {
-      return res.status(401).json({ message: "Incorerct email or password" });
+      return res.status(401).json({ message: "Incorrect email or password" });
     }
 
-    createSendToken(user, 200, res);
+    createSendToken(user, 200, res, "User logged in Successfully");
   } catch (error) {
     res.status(500).json({
       error,
@@ -112,10 +112,10 @@ exports.protect = async (req, res, next) => {
     if (!freshUser) {
       return res
         .status(401)
-        .json("the User beloging to this token does no longer exist");
+        .json("the User belonging to this token does no longer exist");
     }
 
-    //check if user chenage password after the token was issued
+    //check if user change password after the token was issued
     if (freshUser.changedPasswordAfter(decoded.iat)) {
       return res
         .status(401)
@@ -175,7 +175,7 @@ exports.forgotPassword = async (req, res) => {
     });
     // await new Email(user, resetUrl).sendPasswordReset();
 
-    return res.status(200).json({ message: "Token send to email" });
+    return res.status(200).json({ message: "Email send successfully" });
   } catch (error) {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
@@ -201,10 +201,10 @@ exports.restPassword = async (req, res) => {
       passwordResetExpires: { $gt: Date.now() },
     });
 
-    // if token has not expire ,a nd ther eis user send the new password
+    // If token has not expire, and there is user send the new password
     if (!user) {
       return res.status(400).json({
-        message: "Token is unvalid or has expired",
+        message: "Token is invalid or has expired",
       });
     }
 
@@ -227,27 +227,27 @@ exports.restPassword = async (req, res) => {
     await user.save();
 
     // log the user in , send json token to client
-    createSendToken(User, 200, res);
+    createSendToken(User, 200, res, "Password reset Successfully");
   } catch (error) {
     return res.status(500).json({
-      message: "Error while reseting password",
+      message: "Error while resting password",
       error: error.message,
     });
   }
 };
 
-exports.updatePasswrod = async (req, res) => {
+exports.updatePassword = async (req, res) => {
   try {
     //get user form collection
     const user = await User.findById(req.user._id).select("+password");
 
     if (!user) {
       return res.status(400).json({
-        message: "Token is unvalid or has expired",
+        message: "Token is invalid or has expired",
       });
     }
 
-    //check if POSTed password is correct
+    //check if posted password is correct
     if (
       !(await user.correctPassword(req.body.passwordCurrent, user.password))
     ) {
@@ -261,11 +261,11 @@ exports.updatePasswrod = async (req, res) => {
     user.passwordConfirm = req.body.passwordConfirm;
     await user.save();
 
-    //log user in send ,jwt
-    createSendToken(user, 200, res);
+    //log user in send jwt
+    createSendToken(user, 200, res, "Password reset Successfully");
   } catch (error) {
     return res.status(500).json({
-      message: "Error while reseting password",
+      message: "Error while resting password",
       error: error.message,
     });
   }
