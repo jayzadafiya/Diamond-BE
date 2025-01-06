@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 const userRouter = require("./src/routes/user.route");
+const addDiamond = require("./src/routes/add-diamond.route");
 const diamondFilterRouter = require("./src/routes/diamond-filter.route");
 
 const app = express();
@@ -23,6 +24,7 @@ app.get("/", async (req, res) => {
 });
 
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/add-diamond", addDiamond);
 app.use("/api/v1/diamond-filter", diamondFilterRouter);
 
 app.all("*", (req, res, next) => {
@@ -40,6 +42,7 @@ app.use((err, req, res, next) => {
   res.status(err.statusCode).json({
     status: err.status,
     message: err.message,
+    stack: err.stack,
   });
 });
 
