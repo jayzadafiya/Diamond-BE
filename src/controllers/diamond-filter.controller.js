@@ -5,9 +5,7 @@ exports.addDiamondFilter = async (req, res) => {
   const user = req.user._id;
   try {
     const newDiamondFilter = await DiamondFilter.create({
-      weight,
-      filter,
-      price,
+      diamonds: req.body,
       user,
     });
     res.status(201).json({

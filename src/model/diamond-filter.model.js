@@ -1,18 +1,23 @@
 const { default: mongoose } = require("mongoose");
 
 const diamondFilterSchema = mongoose.Schema({
-  weight: {
-    type: Number,
-    required: true,
-  },
-  filter: {
-    type: Number,
-    required: true,
-  },
-  price: {
-    type: Number,
-    required: true,
-  },
+  diamonds: [
+    {
+      _id: false,
+      weight: {
+        type: Number,
+        required: true,
+      },
+      filter: {
+        type: Number,
+        required: true,
+      },
+      price: {
+        type: Number,
+        required: true,
+      },
+    },
+  ],
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
