@@ -1,16 +1,13 @@
 const { default: mongoose } = require("mongoose");
 
 const addDiamondSchema = mongoose.Schema({
-  total: {
-    type: Number,
-    required: true,
-  },
+ 
   date: {
     type: Date,
     required: true,
   },
   count: {
-    type: Number,
+    type: [Number],
     required: true,
   },
   diamondFilter: {

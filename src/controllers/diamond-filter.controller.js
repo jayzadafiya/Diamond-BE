@@ -4,10 +4,10 @@ exports.addDiamondFilter = async (req, res) => {
   const { weight, filter, price } = req.body;
   const user = req.user._id;
   try {
-    const newDiamondFilter = await DiamondFilter.create({
+    const newDiamondFilter = await DiamondFilter.findOneAndUpdate({user},{
       diamonds: req.body,
       user,
-    });
+    },{upsert:true,new:true});
     res.status(201).json({
       status: "success",
       data: {

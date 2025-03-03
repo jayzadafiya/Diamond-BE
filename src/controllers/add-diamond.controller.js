@@ -3,7 +3,6 @@ const DiamondFilter = require("../model/diamond-filter.model");
 
 exports.addDiamond = async (req, res) => {
   const { count, diamondFilterId, date } = req.body;
-  let { total } = req.body;
   const user = req.user._id;
   try {
     const diamondFilter = await DiamondFilter.findById(diamondFilterId);
@@ -14,29 +13,57 @@ exports.addDiamond = async (req, res) => {
       });
     }
 
-    if (total) {
-      if (total !== count * diamondFilter.price) {
-        return res.status(400).json({
-          status: "fail",
-          message: "Total price is not correct",
-        });
-      }
-    } else {
-      total = count * diamondFilter.price;
+    if(!date){
+      return res.status(404).json({
+        status: "fail",
+        message: "Please add Date",
+      });
     }
 
-    const newDiamond = await AddDiamond.create({
-      count: +count,
-      total: +total,
+    if(diamondFilter?.diamonds?.length!==count?.length){
+      return res.status(404).json({
+        status: "fail",
+        message: "Please update count Array, lenght is not corret, it should be "+diamondFilter?.diamonds?.length,
+      });
+    }
+
+    const [day, month, year] = date.split('/');
+    const formattedDate = new Date(`${year}-${month}-${day}T00:00:00Z`); 
+
+    const newDiamond = await AddDiamond.findOneAndUpdate(
+      { user ,date:formattedDate},
+      {
+        count,
+        user,
+        diamondFilter: diamondFilterId,
+        date:formattedDate
+      },
+      { new: true, upsert: true }
+    );
+
+    const diamondData = diamondFilter.diamonds.map((diamond, i) => {
+      const diamondCount = count[i]; 
+      const totalPrice = +diamond.price * +diamondCount;
+      return {
+        weight: diamond.weight,
+        filter: diamond.filter,
+        price: diamond.price,
+        count: diamondCount, 
+        total: totalPrice, 
+      };
+    });
+
+    const data = {
+      _id: newDiamond._id,
       date,
       user,
-      diamondFilter: diamondFilterId,
-    });
+      diamondFilter: diamondData, 
+    };
 
     res.status(201).json({
       status: "success",
       data: {
-        diamond: newDiamond,
+        diamond: data,
       },
       message: "Diamond added successfully",
     });
@@ -63,11 +90,11 @@ exports.getAllDiamond = async (req, res) => {
       },
       {
         $group: {
-          _id: "$date",
+          _id: "$date", 
           items: { $push: "$$ROOT" },
         },
       },
-      { $sort: { _id: 1 } },
+      { $sort: { _id: 1 } }, 
     ]);
 
     const groupedByDate = rawData.reduce((acc, item) => {
@@ -78,7 +105,24 @@ exports.getAllDiamond = async (req, res) => {
         .toString()
         .padStart(2, "0")}/${date.getFullYear()}`;
 
-      acc[formattedDate] = item.items;
+      const sanitizedItems = item.items.map((diamond) => {
+        return {
+          _id: diamond._id,
+          diamondFilter: diamond.diamondFilter[0]?.diamonds?.map((filter, i) => {
+            const diamondCount = diamond.count[i];
+            const totalPrice = +filter.price * +diamondCount;
+            return {
+              weight: filter.weight,
+              filter: filter.filter,
+              price: filter.price,
+              count: diamondCount,
+              total: totalPrice,
+            };
+          }),
+        };
+      });
+
+      acc[formattedDate] = sanitizedItems; 
       return acc;
     }, {});
 
